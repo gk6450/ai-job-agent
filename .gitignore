@@ -1,0 +1,54 @@
+# OpenClaw secrets and state
+openclaw/openclaw.json
+openclaw/.openclaw/
+.env
+.env.local
+.env.production
+
+# Google credentials
+credentials.json
+token.json
+service-account.json
+gmail_credentials.json
+gmail_token.json
+*.pickle
+
+# Personal data
+data/base_resume.pdf
+data/service-account.json
+data/gmail_credentials.json
+data/gmail_token.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+
+# Generated files (keep structure, ignore content)
+generated/resumes/*
+generated/cover_letters/*
+generated/screenshots/*
+!generated/resumes/.gitkeep
+!generated/cover_letters/.gitkeep
+!generated/screenshots/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

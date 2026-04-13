@@ -1,0 +1,87 @@
+{
+  "name": "Goutham Kanagarasu",
+  "title": "Software Engineer",
+  "contact": {
+    "location": "Tamil Nadu, India",
+    "phone": "9500965155",
+    "email": "gouthamgk2016@gmail.com",
+    "github": "github.com/gk6450",
+    "linkedin": "linkedin.com/in/goutham-kanagarasu-ba7395191"
+  },
+  "summary": "Software Engineer with 2+ years of experience building scalable full-stack and AI-powered applications across web and mobile platforms. Strong expertise in designing backend services, developing modern user interfaces, and integrating LLMs and Retrieval-Augmented Generation (RAG) systems for real-time solutions. Proven track record of reducing manual effort by 90% through automation and delivering high-performance, user-centric applications.",
+  "education": [
+    {
+      "institution": "Government College of Technology, Coimbatore",
+      "degree": "Bachelor of Engineering",
+      "field": "Computer Science & Engineering",
+      "cgpa": "9.0/10",
+      "start_date": "July 2019",
+      "end_date": "Apr 2023"
+    }
+  ],
+  "experience": [
+    {
+      "company": "Bosch Global Software Technologies",
+      "title": "Software Engineer",
+      "start_date": "Jan 2024",
+      "end_date": "Present",
+      "bullets": [
+        "Built and deployed full-stack enterprise applications using Java, Spring Boot, and Angular, contributing to scalable and maintainable systems.",
+        "Designed and automated a document processing pipeline using Python, Node.js, Streamlit, and Robot Framework, reducing manual effort by 90% and processing time from hours to minutes.",
+        "Implemented CI/CD pipelines using Jenkins to enable automated testing and seamless deployment across internal environments.",
+        "Debugged and optimized C++ Qt modules in a diagnostic system, improving reliability by 25% and reducing production incidents.",
+        "Developed React Native UI components for cloud onboarding and data visualization, improving cross-platform user experience.",
+        "Built a Technology Radar using React, Vite, and TailwindCSS to visualize and compare engineering trends with dynamic data rendering."
+      ]
+    }
+  ],
+  "achievements": [
+    "Received Best Tyro Award at Bosch Global Software Technologies for outstanding independent project contributions"
+  ],
+  "projects": [
+    {
+      "name": "AI-Powered MCQ Generator (RAG System)",
+      "description": "Full-stack AI application for context-aware MCQ generation from PDFs.",
+      "technologies": ["React", "FastAPI", "MySQL", "Gemini", "Pinecone", "HuggingFace"],
+      "bullets": [
+        "Built a full-stack AI application using React, FastAPI, MySQL, and Gemini to generate context-aware MCQs from PDFs.",
+        "Implemented Retrieval-Augmented Generation (RAG) using Pinecone and HuggingFace embeddings for accurate content retrieval.",
+        "Designed scalable APIs for document upload, vector search, and LLM-based response generation and reduced manual quiz creation effort by 70%, generating 100+ MCQs from 10+ documents.",
+        "Deployed using cost-efficient cloud solutions for optimized LLMOps."
+      ]
+    },
+    {
+      "name": "Mini Cloud Security Posture Management (CSPM)",
+      "description": "Full-stack cloud security platform for scanning AWS resources for misconfigurations.",
+      "technologies": ["React", "FastAPI", "AWS SDK (Boto3)"],
+      "bullets": [
+        "Developed a full-stack cloud security platform using React and FastAPI to scan AWS resources (EC2, S3) for misconfigurations.",
+        "Integrated AWS SDK (Boto3) to analyze real-time cloud configurations and detect security risks (public exposure, encryption, logging).",
+        "Designed risk classification engine (High/Medium/Low) with policy-based evaluation for compliance checks.",
+        "Built an interactive dashboard with filtering, search, and metadata inspection for security insights visualization."
+      ]
+    },
+    {
+      "name": "Expense Tracker",
+      "description": "Full-stack expense tracking application with secure authentication.",
+      "technologies": ["React", "FastAPI", "PostgreSQL", "JWT", "Argon2"],
+      "bullets": [
+        "Built a resilient full-stack application using React, FastAPI, and PostgreSQL with JWT-based authentication.",
+        "Implemented idempotent APIs using client-generated UUIDs to ensure safe retries and prevent duplicate transactions.",
+        "Designed secure authentication using Argon2 hashing and token-based session management and ensured timezone consistency (IST) at database level to maintain accurate financial records.",
+        "Developed responsive UI with real-time updates, filtering, and analytics for expense tracking."
+      ]
+    }
+  ],
+  "skills": {
+    "languages": ["Python", "Java", "C++", "JavaScript", "TypeScript"],
+    "frontend": ["React.js", "Next.js", "Angular", "TailwindCSS", "ShadCN/UI"],
+    "mobile": ["React Native"],
+    "backend": ["Node.js", "Express.js", "FastAPI", "Spring Boot", "NestJS", "Fastify"],
+    "orms": ["Prisma", "SQLAlchemy", "Hibernate"],
+    "databases": ["MongoDB", "MySQL", "PostgreSQL", "Oracle SQL", "Redis"],
+    "ai_ml": ["LLMs", "RAG", "Pinecone", "HuggingFace", "Prompt Engineering"],
+    "cloud_tools": ["AWS", "Jenkins", "Git", "Docker", "Railway", "Render", "Vercel", "Firebase"],
+    "others": ["REST APIs", "WebSockets", "Socket.io", "CI/CD", "JWT", "OAuth", "BullMQ"]
+  }
+}

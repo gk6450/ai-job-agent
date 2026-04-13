@@ -1,0 +1,25 @@
+# Phase 1: Tracker MCP Server
+fastmcp>=2.0.0
+gspread>=6.0.0
+google-auth>=2.0.0
+
+# Phase 2: Job Search
+playwright>=1.40.0
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+httpx>=0.28.0
+thefuzz>=0.22.0
+
+# Phase 3: Resume Tailor
+pdfplumber>=0.10.0
+weasyprint>=60.0
+jinja2>=3.1.0
+
+# Phase 5: Gmail Sync & Follow-ups
+google-api-python-client>=2.100.0
+google-auth-oauthlib>=1.0.0
+
+# Phase 6: Web UI Backend
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9

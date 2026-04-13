@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 0.6in 0.7in; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 10.5pt; line-height: 1.4; color: #1a1a1a; }
+  h1 { font-size: 20pt; font-weight: 700; margin-bottom: 2pt; }
+  h2 { font-size: 11pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5pt; border-bottom: 1.5pt solid #2a2a2a; padding-bottom: 3pt; margin-top: 14pt; margin-bottom: 6pt; }
+  h3 { font-size: 10.5pt; font-weight: 700; margin-bottom: 2pt; }
+  .subtitle { font-size: 12pt; color: #444; margin-bottom: 4pt; }
+  .contact { font-size: 9pt; color: #555; margin-bottom: 4pt; }
+  .contact a { color: #555; text-decoration: none; }
+  .contact span { margin-right: 10pt; }
+  .job-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2pt; }
+  .job-header .dates { font-size: 9.5pt; color: #555; font-weight: 400; white-space: nowrap; }
+  .company { font-size: 10pt; color: #333; margin-bottom: 4pt; }
+  ul { margin-left: 16pt; margin-bottom: 8pt; }
+  li { margin-bottom: 3pt; font-size: 10pt; }
+  .skills-grid { display: grid; grid-template-columns: 120pt 1fr; gap: 2pt 8pt; font-size: 10pt; }
+  .skills-grid .label { font-weight: 600; color: #333; }
+  .skills-grid .value { color: #1a1a1a; }
+  .project-name { font-weight: 700; }
+  .project-tech { font-size: 9pt; color: #555; font-style: italic; }
+</style>
+</head>
+<body>
+
+<h1>{{ name }}</h1>
+{% if title %}<div class="subtitle">{{ title }}</div>{% endif %}
+<div class="contact">
+  {% if contact.location %}<span>{{ contact.location }}</span>{% endif %}
+  {% if contact.phone %}<span>{{ contact.phone }}</span>{% endif %}
+  {% if contact.email %}<span>{{ contact.email }}</span>{% endif %}
+  {% if contact.github %}<span><a href="https://{{ contact.github }}">{{ contact.github }}</a></span>{% endif %}
+  {% if contact.linkedin %}<span><a href="https://{{ contact.linkedin }}">{{ contact.linkedin }}</a></span>{% endif %}
+</div>
+
+{% if summary %}
+<h2>Summary</h2>
+<p style="font-size: 10pt; margin-bottom: 6pt;">{{ summary }}</p>
+{% endif %}
+
+{% if experience %}
+<h2>Work Experience</h2>
+{% for job in experience %}
+<div class="job-header">
+  <h3>{{ job.title }}</h3>
+  <span class="dates">{{ job.start_date }} – {{ job.end_date }}</span>
+</div>
+<div class="company">{{ job.company }}</div>
+<ul>
+  {% for bullet in job.bullets %}
+  <li>{{ bullet }}</li>
+  {% endfor %}
+</ul>
+{% endfor %}
+{% endif %}
+
+{% if projects %}
+<h2>Projects</h2>
+{% for project in projects %}
+<div style="margin-bottom: 8pt;">
+  <span class="project-name">{{ project.name }}</span>
+  {% if project.technologies %}<span class="project-tech"> — {{ project.technologies | join(', ') }}</span>{% endif %}
+  <ul>
+    {% for bullet in project.bullets %}
+    <li>{{ bullet }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if skills %}
+<h2>Skills</h2>
+<div class="skills-grid">
+  {% for category, items in skills.items() %}
+  <div class="label">{{ category | replace('_', ' ') | title }}:</div>
+  <div class="value">{{ items | join(', ') }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if education %}
+<h2>Education</h2>
+{% for edu in education %}
+<div class="job-header">
+  <h3>{{ edu.degree }} — {{ edu.field }}</h3>
+  <span class="dates">{{ edu.start_date }} – {{ edu.end_date }}</span>
+</div>
+<div class="company">{{ edu.institution }}{% if edu.cgpa %} | CGPA: {{ edu.cgpa }}{% endif %}</div>
+{% endfor %}
+{% endif %}
+
+{% if achievements %}
+<h2>Achievements</h2>
+<ul>
+  {% for item in achievements %}
+  <li>{{ item }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+</body>
+</html>

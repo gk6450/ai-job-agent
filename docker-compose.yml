@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  openclaw:
+    image: node:22-slim
+    working_dir: /app
+    command: >
+      sh -c "npm i -g openclaw@beta && openclaw gateway"
+    volumes:
+      - ./openclaw:/app/openclaw
+      - ./data:/app/data
+      - ./mcp-servers:/app/mcp-servers
+      - ./generated:/app/generated
+      - openclaw-config:/root/.openclaw
+    ports:
+      - "18789:18789"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - GOOGLE_SERVICE_ACCOUNT_FILE=${GOOGLE_SERVICE_ACCOUNT_FILE}
+    restart: unless-stopped
+
+  mcp-servers:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    volumes:
+      - ./data:/app/data
+      - ./generated:/app/generated
+    environment:
+      - GOOGLE_SERVICE_ACCOUNT_FILE=${GOOGLE_SERVICE_ACCOUNT_FILE}
+    depends_on:
+      - openclaw
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./generated:/app/generated
+    environment:
+      - OPENCLAW_GATEWAY_URL=http://openclaw:18789
+      - JOBPILOT_WEB_TOKEN=${JOBPILOT_WEB_TOKEN}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:8000}
+    depends_on:
+      - openclaw
+      - mcp-servers
+    restart: unless-stopped
+
+  evolution-api:
+    image: atendai/evolution-api:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY:-change-me}
+    volumes:
+      - evolution-data:/evolution/instances
+    restart: unless-stopped
+    profiles:
+      - whatsapp
+
+volumes:
+  openclaw-config:
+  evolution-data:

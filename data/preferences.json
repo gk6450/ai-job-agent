@@ -1,0 +1,28 @@
+{
+  "target_roles": [
+    "Software Engineer",
+    "Full Stack Developer",
+    "Backend Developer"
+  ],
+  "experience_level": "2+ years",
+  "preferred_locations": ["FILL_IN"],
+  "open_to_remote": "FILL_IN",
+  "preferred_company_size": "FILL_IN",
+  "industries_to_avoid": [],
+  "salary_minimum_lpa": "FILL_IN",
+  "salary_expected_lpa": "FILL_IN",
+  "platforms": [
+    "linkedin",
+    "naukri",
+    "indeed",
+    "glassdoor",
+    "wellfound"
+  ],
+  "daily_scan_enabled": true,
+  "daily_scan_time": "09:00",
+  "max_applications_per_day": 10,
+  "followup_policy_default": "draft_for_review",
+  "followup_days_first": 7,
+  "followup_days_second": 14,
+  "max_followups_per_application": 2
+}
