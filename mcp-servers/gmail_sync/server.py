@@ -14,19 +14,38 @@ mcp = FastMCP(
 )
 
 
+def _get_tracker_module():
+    """Import the tracker server module."""
+    import sys
+    from pathlib import Path
+    tracker_path = Path(__file__).parent.parent / "tracker"
+    if str(tracker_path) not in sys.path:
+        sys.path.insert(0, str(tracker_path))
+    import server as tracker_server
+    return tracker_server
+
+
 def _get_tracker_data() -> list[dict]:
     """Fetch all application records from the tracker MCP."""
     try:
-        import sys
-        from pathlib import Path
-        tracker_path = Path(__file__).parent.parent / "tracker"
-        sys.path.insert(0, str(tracker_path))
-        from server import _get_worksheet
-        ws = _get_worksheet()
+        tracker = _get_tracker_module()
+        ws = tracker._get_worksheet()
         return ws.get_all_records()
     except Exception as e:
         logger.warning(f"Could not load tracker data: {e}")
         return []
+
+
+def _auto_update_tracker(application_id: str, new_status: str, notes: str = "") -> bool:
+    """Auto-update an application's status in the tracker sheet."""
+    try:
+        tracker = _get_tracker_module()
+        result = tracker.update_status(application_id, new_status, notes)
+        logger.info(f"Auto-updated {application_id} -> {new_status}")
+        return "Updated" in result
+    except Exception as e:
+        logger.error(f"Failed to auto-update tracker: {e}")
+        return False
 
 
 @mcp.tool()
@@ -78,6 +97,7 @@ async def check_new_responses(days_back: int = 7) -> str:
 
     applications = _get_tracker_data()
 
+    updated_count = 0
     lines = [f"Found {len(emails)} potential application response(s):\n"]
     for email in emails:
         classification = classify_email(email)
@@ -86,13 +106,24 @@ async def check_new_responses(days_back: int = 7) -> str:
         line = f"- {email.summary()}"
         line += f"\n  Classification: {classification.upper()}"
         if matched_app:
-            line += f"\n  Matched to: {matched_app.get('ID', '?')} ({matched_app.get('Company', '?')} - {matched_app.get('Role', '?')})"
+            app_id = matched_app.get("ID", "?")
+            current_status = matched_app.get("Status", "")
+            line += f"\n  Matched to: {app_id} ({matched_app.get('Company', '?')} - {matched_app.get('Role', '?')})"
             suggested = suggest_status_update(classification)
-            if suggested:
-                line += f"\n  Suggested status update: {suggested}"
+            if suggested and suggested != current_status:
+                email_note = f"Gmail: {email.subject} ({email.date})"
+                updated = _auto_update_tracker(app_id, suggested, email_note)
+                if updated:
+                    line += f"\n  Tracker AUTO-UPDATED: {current_status} -> {suggested}"
+                    updated_count += 1
+                else:
+                    line += f"\n  Update needed: {current_status} -> {suggested} (auto-update failed)"
         else:
             line += "\n  No matching application found"
         lines.append(line)
+
+    if updated_count:
+        lines.insert(1, f"Auto-updated {updated_count} application(s) in tracker.\n")
 
     return "\n".join(lines)
 
@@ -146,10 +177,10 @@ async def classify_email_by_id(email_id: str) -> str:
 
 @mcp.tool()
 async def sync_all() -> str:
-    """Full Gmail sync: check inbox, match to tracked applications, report updates.
+    """Full Gmail sync: check inbox, match to tracked applications, auto-update tracker.
 
-    Scans recent emails, classifies them, matches to applications, and suggests status updates.
-    Does NOT auto-update statuses (reports them for user review).
+    Scans recent emails, classifies them, matches to applications, automatically
+    updates the tracker sheet, and returns a notification summary.
     """
     try:
         service = get_gmail_service()
@@ -183,17 +214,34 @@ async def sync_all() -> str:
     if not all_matches:
         return f"Synced {len(companies)} companies. No new responses found."
 
+    updated_count = 0
     lines = [f"Gmail Sync Complete -- {len(all_matches)} response(s) found:\n"]
     for m in all_matches:
         app = m["application"]
+        new_status = m["suggested_status"]
+        current_status = app.get("Status", "")
+        app_id = app.get("ID", "?")
+
+        status_line = f"  Status: {current_status}"
+
+        if new_status and new_status != current_status:
+            email_note = f"Gmail: {m['email'].subject} ({m['email'].date})"
+            updated = _auto_update_tracker(app_id, new_status, email_note)
+            if updated:
+                status_line = f"  Status: {current_status} -> {new_status} (AUTO-UPDATED)"
+                updated_count += 1
+            else:
+                status_line = f"  Status: {current_status} -> {new_status} (update failed)"
+
         lines.append(
-            f"- {app.get('ID', '?')} | {app.get('Company', '?')} - {app.get('Role', '?')}\n"
+            f"- {app_id} | {app.get('Company', '?')} - {app.get('Role', '?')}\n"
             f"  Email: {m['email'].subject}\n"
             f"  Classification: {m['classification'].upper()}\n"
-            f"  Current status: {app.get('Status', '?')}"
+            f"{status_line}"
         )
-        if m["suggested_status"]:
-            lines.append(f"  Suggested update: {app.get('Status', '?')} -> {m['suggested_status']}")
+
+    if updated_count:
+        lines.insert(1, f"Auto-updated {updated_count} application(s) in tracker.\n")
 
     return "\n".join(lines)
 

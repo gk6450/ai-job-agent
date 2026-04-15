@@ -9,6 +9,7 @@ from fastmcp import FastMCP
 from .models import JobListing, SearchQuery, SearchResult
 from .dedup import deduplicate
 from .scrapers import SCRAPERS
+from .scorer import score_job, score_and_rank, AUTO_APPLY_THRESHOLD
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -144,12 +145,155 @@ async def search_all_platforms(
         errors=errors,
     )
 
+    ranked = score_and_rank(unique_listings)
+
     lines = [result.summary(), ""]
-    for i, job in enumerate(unique_listings, 1):
-        lines.append(f"{i}. {job.summary()}")
+    for i, (job, match_score) in enumerate(ranked, 1):
+        lines.append(f"{i}. [{match_score}% match] {job.summary()}")
+
+    auto_apply = [j for j, s in ranked if s >= AUTO_APPLY_THRESHOLD]
+    if auto_apply:
+        lines.append(f"\n{len(auto_apply)} job(s) scored >= {AUTO_APPLY_THRESHOLD}% -- eligible for auto-apply.")
 
     if errors:
         lines.append(f"\nPlatform errors: {errors}")
+
+    return "\n".join(lines)
+
+
+@mcp.tool()
+async def daily_scan() -> str:
+    """Run a scheduled daily job search based on resume and preferences.
+
+    Uses target_roles from preferences.json to search all platforms,
+    deduplicates, scores, and ranks results. Called automatically daily
+    when daily_scan_enabled is true.
+    """
+    prefs = _load_preferences()
+
+    if not prefs.get("daily_scan_enabled", True):
+        return "Daily scan is disabled in preferences."
+
+    target_roles = prefs.get("target_roles", [])
+    if not target_roles:
+        return "No target_roles configured in preferences.json. Cannot run daily scan."
+
+    pref_locations = prefs.get("preferred_locations", [])
+    location = ""
+    if pref_locations and pref_locations != ["FILL_IN"]:
+        location = pref_locations[0]
+
+    platform_list = prefs.get("platforms", list(SCRAPERS.keys()))
+
+    all_listings: list[JobListing] = []
+    errors: dict[str, str] = {}
+
+    for role in target_roles:
+        for platform_name in platform_list:
+            if platform_name not in SCRAPERS:
+                continue
+            scraper = SCRAPERS[platform_name]()
+            try:
+                listings = await scraper.search_with_retry(
+                    keywords=role,
+                    location=location,
+                    remote_only=prefs.get("open_to_remote", False) is True,
+                )
+                all_listings.extend(listings)
+            except Exception as e:
+                errors[f"{platform_name}/{role}"] = str(e)
+            await asyncio.sleep(1)
+
+    total_before = len(all_listings)
+    unique = deduplicate(all_listings)
+    ranked = score_and_rank(unique)
+
+    lines = [
+        f"Daily Scan Complete",
+        f"Searched: {', '.join(target_roles)}",
+        f"Location: {location or 'any'}",
+        f"Found: {total_before} total, {len(unique)} unique\n",
+    ]
+
+    auto_apply_jobs = []
+    for i, (job, match_score) in enumerate(ranked, 1):
+        marker = " ** AUTO-APPLY ELIGIBLE **" if match_score >= AUTO_APPLY_THRESHOLD else ""
+        lines.append(f"{i}. [{match_score}% match] {job.summary()}{marker}")
+        if match_score >= AUTO_APPLY_THRESHOLD:
+            auto_apply_jobs.append((job, match_score))
+
+    if auto_apply_jobs:
+        lines.append(
+            f"\n{len(auto_apply_jobs)} job(s) scored >= {AUTO_APPLY_THRESHOLD}% "
+            f"and will be auto-applied with your base resume."
+        )
+    else:
+        lines.append(f"\nNo jobs above {AUTO_APPLY_THRESHOLD}% threshold for auto-apply.")
+
+    if errors:
+        lines.append(f"\nErrors: {errors}")
+
+    return "\n".join(lines)
+
+
+@mcp.tool()
+async def get_auto_apply_candidates(
+    keywords: str = "",
+    location: str = "",
+) -> str:
+    """Find jobs that score >= 85% match and are eligible for auto-apply.
+
+    These jobs closely match your resume and preferences. The agent will
+    apply to them with the base resume without asking for approval.
+
+    Args:
+        keywords: Override search keywords (leave empty to use target_roles from preferences)
+        location: Override location (leave empty to use preferred_locations)
+    """
+    prefs = _load_preferences()
+
+    if not keywords:
+        target_roles = prefs.get("target_roles", [])
+        keywords = ", ".join(target_roles) if target_roles else "Software Engineer"
+
+    if not location:
+        pref_locations = prefs.get("preferred_locations", [])
+        if pref_locations and pref_locations != ["FILL_IN"]:
+            location = pref_locations[0]
+
+    platform_list = prefs.get("platforms", list(SCRAPERS.keys()))
+    all_listings: list[JobListing] = []
+
+    search_terms = [k.strip() for k in keywords.split(",")]
+    for term in search_terms:
+        for platform_name in platform_list:
+            if platform_name not in SCRAPERS:
+                continue
+            scraper = SCRAPERS[platform_name]()
+            try:
+                listings = await scraper.search_with_retry(keywords=term, location=location)
+                all_listings.extend(listings)
+            except Exception:
+                pass
+            await asyncio.sleep(1)
+
+    unique = deduplicate(all_listings)
+    ranked = score_and_rank(unique)
+
+    auto_apply = [(job, s) for job, s in ranked if s >= AUTO_APPLY_THRESHOLD]
+
+    if not auto_apply:
+        return f"No jobs found above {AUTO_APPLY_THRESHOLD}% match threshold."
+
+    lines = [
+        f"Found {len(auto_apply)} auto-apply candidate(s) (>= {AUTO_APPLY_THRESHOLD}% match):\n"
+    ]
+    for i, (job, match_score) in enumerate(auto_apply, 1):
+        lines.append(f"{i}. [{match_score}%] {job.summary()}")
+
+    lines.append(
+        f"\nThese {len(auto_apply)} job(s) will be applied to automatically with your base resume."
+    )
 
     return "\n".join(lines)
 

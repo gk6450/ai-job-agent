@@ -67,6 +67,21 @@ async def parse_resume_pdf(pdf_path: str = "") -> str:
 
 
 @mcp.tool()
+async def get_base_resume_path() -> str:
+    """Get the path to the original base resume PDF.
+
+    PREFERRED: Use this to submit the original resume as-is.
+    Only use tailor_resume_for_job() when the base resume clearly
+    misses key requirements for a specific role.
+    """
+    pdf_path = DATA_DIR / "base_resume.pdf"
+    if not pdf_path.exists():
+        return "Base resume not found. Place base_resume.pdf in data/ folder."
+    size_kb = pdf_path.stat().st_size / 1024
+    return f"Base resume path: {pdf_path}\nSize: {size_kb:.1f} KB\n\nUse this directly for applications unless tailoring is specifically needed."
+
+
+@mcp.tool()
 async def tailor_resume_for_job(
     job_description: str,
     job_title: str,
@@ -75,8 +90,12 @@ async def tailor_resume_for_job(
 ) -> str:
     """Tailor the base resume for a specific job and generate a PDF.
 
-    Conservative tailoring: reorders bullets, adjusts emphasis, highlights matching skills.
-    NEVER fabricates skills, experience, or certifications.
+    IMPORTANT: Only use this when the base resume clearly misses key
+    requirements. Prefer get_base_resume_path() for most applications.
+
+    The tailored PDF preserves the same formatting and style as the
+    original base_resume.pdf. Changes are conservative: reorder bullets,
+    adjust emphasis, highlight matching skills. NEVER fabricates.
 
     Args:
         job_description: Full job description text
@@ -97,7 +116,8 @@ async def tailor_resume_for_job(
     return (
         f"Resume tailored for {job_title} at {company}.\n"
         f"PDF: {pdf_path}\n"
-        f"JSON: {tailored_json_path}"
+        f"JSON: {tailored_json_path}\n\n"
+        f"NOTE: The tailored PDF preserves the same style as base_resume.pdf."
     )
 
 

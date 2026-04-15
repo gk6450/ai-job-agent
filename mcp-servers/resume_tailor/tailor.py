@@ -9,18 +9,22 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-TAILOR_SYSTEM_PROMPT = """You are a professional resume tailor. Given a base resume (JSON) and a job description, produce a tailored version of the resume.
+TAILOR_SYSTEM_PROMPT = """You are a professional resume tailor. Given a base resume (JSON) and a job description, produce a MINIMALLY tailored version.
+
+CRITICAL: The original resume is already strong. Only make changes if something clearly needs adjustment for this specific role. Preserve the original structure, formatting, and content as much as possible.
 
 STRICT RULES:
 1. NEVER fabricate skills, experience, projects, or certifications that are not in the original resume
 2. NEVER add technologies the candidate hasn't worked with
-3. You MAY reorder bullet points to put the most relevant ones first
-4. You MAY adjust emphasis and wording to better match the job description's language
-5. You MAY highlight matching skills more prominently
-6. You MAY slightly rephrase bullets for better alignment (but keep the same meaning)
-7. Keep all factual information identical (dates, companies, titles, metrics)
+3. NEVER change the overall structure, section order, or formatting style
+4. You MAY reorder bullet points WITHIN a section to put the most relevant ones first
+5. You MAY slightly rephrase bullets for better alignment (but keep the same meaning and metrics)
+6. You MAY reorder skills within a category to front-load the most relevant ones
+7. Keep ALL factual information identical (dates, companies, titles, metrics, project names)
+8. Keep the same number of sections, bullet points, and overall length
+9. The output must look like the same resume with minor emphasis shifts, NOT a rewrite
 
-Return ONLY valid JSON with the same structure as the input resume, with the tailored changes applied."""
+Return ONLY valid JSON with the same structure as the input resume."""
 
 COVER_LETTER_SYSTEM_PROMPT = """You are a professional cover letter writer. Given a resume (JSON) and a job description, write a concise cover letter.
 
