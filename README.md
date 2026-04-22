@@ -219,26 +219,45 @@ Also check `data/profile.json` for any remaining `FILL_IN` placeholders.
 
 ```bash
 cd ai-job-agent
-openclaw gateway
+openclaw gateway start
+openclaw gateway status
 ```
 
-Keep this terminal running.
+Expected: `Running` on port `18789` with all 6 MCP servers listed as healthy.
 
-### Step 10: Test the agent
-
-In a new terminal:
-
+If a server is unhealthy, view logs:
 ```bash
-openclaw agent --agent main --message "Hello, what can you do?"
+openclaw gateway logs --tail 100
 ```
+
+Most failures are path mismatches — re-run `python tools/setup_openclaw_config.py`, then `openclaw gateway stop` + `openclaw gateway start`.
+
+### Step 10: Smoke-test all MCP servers
+
+Optional but recommended — catches dep/import issues before talking to the agent:
+
+```powershell
+.venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'mcp-servers/tracker'); import server; print('tracker OK')"
+.venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'mcp-servers/job_search'); import server; print('job_search OK')"
+.venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'mcp-servers/resume_tailor'); import server; print('resume_tailor OK')"
+.venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'mcp-servers/application_filler'); import server; print('application_filler OK')"
+.venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'mcp-servers/gmail_sync'); import server; print('gmail_sync OK')"
+.venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'mcp-servers/followup'); import server; print('followup OK')"
+```
+
+All six should print `… OK`.
 
 ### Step 11: Connect Telegram
 
-1. Message [@BotFather](https://t.me/BotFather) → `/newbot` → copy the token
-2. Get your user ID from [@userinfobot](https://t.me/userinfobot)
-3. Update `openclaw.json` with the token and user ID
-4. Restart the gateway
-5. Message your bot on Telegram
+1. Message [@BotFather](https://t.me/BotFather) → `/newbot` → copy the token → put it in `.env` as `TELEGRAM_BOT_TOKEN`
+2. DM [@userinfobot](https://t.me/userinfobot) → copy your numeric `Id:` → put it in `.env` as `ALLOWED_TELEGRAM_ID`
+3. Re-generate the OpenClaw config so it picks up the values:
+   ```bash
+   python tools/setup_openclaw_config.py
+   openclaw gateway stop
+   openclaw gateway start
+   ```
+4. From your phone, DM your bot — try `List my applications` to confirm the round-trip works
 
 ### Step 12: Connect WhatsApp
 
@@ -250,17 +269,91 @@ Scan the QR code with WhatsApp.
 
 ### Step 13: Gmail setup (for sync + follow-ups)
 
-1. Google Cloud Console → enable **Gmail API**
-2. Credentials → Create **OAuth 2.0 Client ID** (Desktop App)
-3. Download JSON → save as `data/gmail_credentials.json`
-4. The first sync will open a browser window for OAuth consent
-5. Test:
+Gmail uses **OAuth user consent** (different from the service account used for Sheets). The Sheets account and Gmail account can be **different Google accounts** — the GCP project just needs to allow the Gmail account as a test user.
+
+#### 13.1 Configure the OAuth consent screen
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com) → **same project** you used for Sheets
+2. **APIs & Services → OAuth consent screen** → click **Get started**
+3. Walk through the wizard:
+   - **App name**: `JobPilot` (any)
+   - **User support email**: dropdown → your account
+   - **Audience**: **External**
+   - **Contact information**: same email
+   - Tick the user-data-policy checkbox → **Continue → Create**
+4. Once on the OAuth dashboard → left menu → **Audience** → scroll to **Test users** → **+ Add users** → enter the Gmail account whose inbox you want the agent to monitor → **Save**
+
+   > Test users can be different from your GCP account. As long as they're listed here, OAuth will succeed for them in Testing mode (up to 100 users — no need to publish the app).
+
+#### 13.2 Create the OAuth client
+
+1. Left menu → **Clients** → **+ Create client**
+2. **Application type: Desktop app**
+3. Name: `JobPilot Desktop`
+4. **Create** → in the popup, **Download JSON**
+5. Save as `data/gmail_credentials.json` in the repo root
+6. Verify the file structure:
+
+   ```bash
+   .venv/Scripts/python.exe -c "import json; print(list(json.load(open('data/gmail_credentials.json')).keys()))"
+   ```
+
+   Must print `['installed']`. If it prints `['web']` you created the wrong client type — delete it and recreate as **Desktop app**.
+
+#### 13.3 Enable the Gmail API
+
+In the same project: [console.developers.google.com](https://console.developers.google.com) → search **Gmail API** → click **Enable**. Wait ~30 seconds for it to propagate.
+
+#### 13.4 Run the OAuth consent flow (one-time browser pop)
 
 ```bash
-openclaw agent --agent main --message "Check Gmail auth status"
+.venv/Scripts/python.exe -c "import sys; sys.path.insert(0,'mcp-servers/gmail_sync'); from auth import get_gmail_service; s = get_gmail_service(); print('Gmail OK:', s.users().getProfile(userId='me').execute().get('emailAddress'))"
 ```
 
-### Step 14: Web UI (optional)
+A browser opens:
+1. Pick the **Gmail account whose inbox you want monitored** (the one you added as a test user)
+2. You'll see "Google hasn't verified this app" → **Advanced → Go to JobPilot (unsafe)** (safe — you're the developer)
+3. Grant the requested Gmail permissions → **Continue**
+4. Browser shows "authentication flow has completed"
+
+Terminal should print `Gmail OK: yourgmail@gmail.com`. The token is cached at `data/gmail_token.json` — future runs won't open the browser.
+
+#### Common errors
+
+| Error | Fix |
+|---|---|
+| `Client secrets must be for a web or installed app` | The downloaded JSON isn't a Desktop client. Verify with the diagnostic in 13.2 and re-download. |
+| `403 Gmail API has not been used in project ... or it is disabled` | Step 13.3 missed — enable Gmail API and wait 30-60s |
+| `Access blocked: This app's request is invalid` | Test user not added in step 13.1 — add the email under Audience → Test users |
+
+To re-bind to a different Gmail account: delete `data/gmail_token.json` and re-run the auth command.
+
+### Step 14: PDF generation (WeasyPrint + GTK runtime)
+
+Required for tailored resume PDFs and cover letter PDFs.
+
+**Linux/macOS:** WeasyPrint's system deps come with the OS or are easily `apt`/`brew` installable — see [WeasyPrint docs](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html).
+
+**Windows:** install GTK3 runtime:
+
+1. Download the latest installer from [GTK-for-Windows-Runtime-Environment-Installer releases](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases) (look for `gtk3-runtime-X.X.X-X-X-X-ts-win64.exe`)
+2. Run with default options — it adds itself to PATH
+3. **Close PowerShell completely and reopen it** so the new PATH is picked up
+4. Verify:
+
+   ```powershell
+   .venv\Scripts\activate
+   .venv\Scripts\python.exe -c "from weasyprint import HTML; HTML(string='<h1>hello</h1>').write_pdf('test.pdf'); print('PDF OK')"
+   del test.pdf
+   ```
+
+   Expected: prints `PDF OK` and creates `test.pdf` in the repo root.
+
+If you get `cannot load library 'libgobject-2.0-0'`, the installer didn't update PATH. Manually add `C:\Program Files\GTK3-Runtime Win64\bin` to your **User PATH** via Windows Settings → System → About → Advanced system settings → Environment Variables, then close and reopen PowerShell.
+
+> WeasyPrint is imported lazily inside `mcp-servers/resume_tailor/generator.py`, so the MCP server starts fine even without GTK — but PDF generation calls will fail with a clear error until you install it.
+
+### Step 15: Web UI (optional)
 
 **Terminal 1** — Backend:
 ```bash
