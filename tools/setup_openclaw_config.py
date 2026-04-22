@@ -27,7 +27,6 @@ import platform
 import secrets
 import shutil
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -146,11 +145,6 @@ def main() -> int:
         print(rendered, file=sys.stderr)
         return 1
 
-    parsed["meta"] = {
-        "generatedBy": "tools/setup_openclaw_config.py",
-        "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "repoRoot": subs["{{REPO_ROOT}}"],
-    }
     pretty = json.dumps(parsed, indent=2)
 
     if args.dry_run:
