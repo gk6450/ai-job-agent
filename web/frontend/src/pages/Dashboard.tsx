@@ -90,7 +90,17 @@ export default function Dashboard() {
 
   if (!stats) return null;
 
-  const pieData = Object.entries(stats.by_status).map(([name, value]) => ({
+  const safeStats: ApplicationStats = {
+    total: stats.total ?? 0,
+    active: stats.active ?? 0,
+    interviews: stats.interviews ?? 0,
+    pending_followups: stats.pending_followups ?? 0,
+    by_status: stats.by_status ?? {},
+    by_date: stats.by_date ?? [],
+    recent_activity: stats.recent_activity ?? [],
+  };
+
+  const pieData = Object.entries(safeStats.by_status).map(([name, value]) => ({
     name,
     value,
   }));
@@ -110,7 +120,7 @@ export default function Dashboard() {
               <span className="text-sm text-gray-400">{label}</span>
               <Icon size={20} className={text} />
             </div>
-            <p className={`mt-2 text-3xl font-bold ${text}`}>{stats[key]}</p>
+            <p className={`mt-2 text-3xl font-bold ${text}`}>{safeStats[key]}</p>
           </div>
         ))}
       </div>
@@ -162,11 +172,11 @@ export default function Dashboard() {
           <h3 className="mb-4 font-semibold text-gray-200">
             Applications Over Time
           </h3>
-          {stats.by_date.length === 0 ? (
+          {safeStats.by_date.length === 0 ? (
             <p className="py-12 text-center text-gray-500">No data yet</p>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={stats.by_date}>
+              <LineChart data={safeStats.by_date}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3a" />
                 <XAxis
                   dataKey="date"
@@ -199,11 +209,11 @@ export default function Dashboard() {
       {/* Recent activity */}
       <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
         <h3 className="mb-4 font-semibold text-gray-200">Recent Activity</h3>
-        {stats.recent_activity.length === 0 ? (
+        {safeStats.recent_activity.length === 0 ? (
           <p className="text-center text-gray-500">No recent activity</p>
         ) : (
           <ul className="divide-y divide-gray-800">
-            {stats.recent_activity.map((a) => (
+            {safeStats.recent_activity.map((a) => (
               <li
                 key={a.id + a.timestamp}
                 className="flex items-center justify-between py-3"
