@@ -788,6 +788,7 @@ ai-job-agent/
 | Web UI: `ModuleNotFoundError: No module named 'web'` | Run `uvicorn` from repo root, not from `web/backend/` |
 | Web UI: `npm install` fails on Windows | Run PowerShell as Administrator once |
 | Web UI: 403 Forbidden on every API call | Set `JOBPILOT_WEB_TOKEN=jobpilot-local-dev` in env, or check `web/backend/auth.py` |
+| `[postcss] tailwindcss directly as a PostCSS plugin` on `npm run dev` | Tailwind v4 uses `@tailwindcss/vite` (already in `vite.config.ts`) — delete `web/frontend/postcss.config.js` if it exists, then `npm install && npm run dev` |
 | Docker build fails | Add swap: `sudo fallocate -l 4G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile` |
 
 ---
