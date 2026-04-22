@@ -8,6 +8,7 @@ Requires:
     - A Google Sheet named "Job Application Tracker" shared with the service account email
 """
 
+import json
 import sys
 from pathlib import Path
 
@@ -41,9 +42,10 @@ def main():
     print("\n[2/6] Connecting to Google Sheets API...")
     try:
         client = _get_client()
-        print(f"  Connected as: {client.auth.service_account_email}")
+        sa_email = json.loads(creds_path.read_text()).get("client_email", "<unknown>")
+        print(f"  Connected as: {sa_email}")
     except Exception as e:
-        print(f"  FAIL: {e}")
+        print(f"  FAIL: {type(e).__name__}: {e}")
         return
 
     print("\n[3/6] Initializing sheet headers...")
