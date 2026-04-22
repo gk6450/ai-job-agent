@@ -6,9 +6,11 @@
       "token": "{{GATEWAY_TOKEN}}"
     }
   },
+  "agent": {
+    "workspace": "{{REPO_ROOT}}/openclaw"
+  },
   "agents": {
     "defaults": {
-      "workspace": "{{REPO_ROOT}}/openclaw",
       "model": {
         "primary": "google/gemini-2.5-flash",
         "fallbacks": [
