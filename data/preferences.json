@@ -2,15 +2,20 @@
   "target_roles": [
     "Software Engineer",
     "Full Stack Developer",
-    "Backend Developer"
+    "Backend Developer",
+    "Frontend Developer",
+    "Vibe Coder",
+    "AI Assisted Full Stack Developer",
+    "React Native Developer",
+    "AI Full Stack Engineer"
   ],
   "experience_level": "2+ years",
-  "preferred_locations": ["FILL_IN"],
-  "open_to_remote": "FILL_IN",
-  "preferred_company_size": "FILL_IN",
+  "preferred_locations": ["Bangalore", "Coimbatore", "Chennai", "Hyderabad", "Kerala", "Remote", "Abroad"],
+  "open_to_remote": true,
+  "preferred_company_size": "any",
   "industries_to_avoid": [],
-  "salary_minimum_lpa": "FILL_IN",
-  "salary_expected_lpa": "FILL_IN",
+  "salary_minimum_lpa": 11,
+  "salary_expected_lpa": 13,
   "platforms": [
     "linkedin",
     "naukri",

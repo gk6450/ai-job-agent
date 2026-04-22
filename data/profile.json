@@ -15,8 +15,12 @@
   "total_experience_years": 2,
   "current_company": "Bosch Global Software Technologies",
   "current_title": "Software Engineer",
-  "notice_period": "FILL_IN",
-  "willing_to_relocate": "FILL_IN",
-  "work_authorization_india": "FILL_IN",
-  "requires_visa_sponsorship": "FILL_IN"
+  "notice_period": "90 days official, negotiable to 30-45 days, buyout option available",
+  "willing_to_relocate": true,
+  "work_authorization_india": true,
+  "requires_visa_sponsorship": "Only for countries outside India",
+  "current_salary_lpa": 6.56,
+  "gender": "",
+  "disability_status": "No",
+  "veteran_status": "No"
 }

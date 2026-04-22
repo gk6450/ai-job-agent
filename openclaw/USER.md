@@ -49,31 +49,28 @@
 
 ## Job Search Preferences
 
-<!-- FILL IN the sections below with your preferences -->
-
-- **Target Roles**: Software Engineer, Full Stack Developer, Backend Developer <!-- add/remove roles -->
+- **Target Roles**: Software Engineer, Full Stack Developer, Backend Developer, Frontend Developer, Vibe Coder, AI Assisted Full Stack Developer, React Native Developer, AI Full Stack Engineer
 - **Experience Level**: 2+ years
-- **Preferred Locations**: <!-- FILL IN: e.g., Bangalore, Chennai, Hyderabad, Remote -->
-- **Open to Remote**: <!-- FILL IN: Yes / No / Hybrid only -->
-- **Preferred Company Size**: <!-- FILL IN: Startup / Mid-size / Enterprise / Any -->
-- **Industries to Avoid**: <!-- FILL IN: e.g., Gambling, Defense, or leave blank for none -->
-- **Minimum Salary (Annual)**: <!-- FILL IN: e.g., 8 LPA, 12 LPA -->
-- **Expected Salary (Annual)**: <!-- FILL IN: e.g., 12-15 LPA -->
-- **Notice Period**: <!-- FILL IN: e.g., 30 days, 60 days, Immediate -->
-- **Visa/Work Authorization**: <!-- FILL IN: e.g., Indian citizen, no visa sponsorship needed -->
+- **Preferred Locations**: Bangalore, Coimbatore, Chennai, Hyderabad, Kerala (India), Abroad (any location)
+- **Open to Remote**: Yes
+- **Preferred Company Size**: Any
+- **Industries to Avoid**: None
+- **Minimum Salary (Annual)**: 11 LPA INR (negotiable)
+- **Expected Salary (Annual)**: 13 LPA INR (negotiable)
+- **Current Salary**: 6.56 LPA INR
+- **Notice Period**: 90 days official, negotiable to 30-45 days, buyout option available
+- **Visa/Work Authorization**: Indian citizen, authorized to work in India. Requires visa sponsorship for countries outside India.
 
 ## Application Defaults
 
-<!-- FILL IN these common application form answers -->
-
-- **Willing to relocate**: <!-- FILL IN: Yes / No / Depends on location -->
+- **Willing to relocate**: Yes
 - **Years of experience (total)**: 2+
 - **Highest education**: Bachelor's degree
-- **Are you legally authorized to work in India?**: <!-- FILL IN: Yes / No -->
-- **Do you require visa sponsorship?**: <!-- FILL IN: Yes / No -->
-- **Gender** (optional, for forms that ask): <!-- FILL IN or leave blank -->
-- **Disability status** (optional, for forms that ask): <!-- FILL IN or leave blank -->
-- **Veteran status** (optional, for forms that ask): <!-- FILL IN or leave blank -->
+- **Are you legally authorized to work in India?**: Yes
+- **Do you require visa sponsorship?**: Only for countries outside India
+- **Gender**: (leave blank on forms unless required)
+- **Disability status**: No
+- **Veteran status**: No
 
 ## Follow-up Preferences
 
