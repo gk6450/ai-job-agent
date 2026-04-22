@@ -5,7 +5,7 @@ import logging
 import random
 from abc import ABC, abstractmethod
 
-from ..models import JobListing
+from models import JobListing
 
 logger = logging.getLogger(__name__)
 

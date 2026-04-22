@@ -9,7 +9,7 @@ from pathlib import Path
 
 from thefuzz import fuzz
 
-from .reader import EmailMessage
+from reader import EmailMessage
 
 logger = logging.getLogger(__name__)
 

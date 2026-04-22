@@ -143,93 +143,39 @@ playwright install chromium
 | Groq | [console.groq.com](https://console.groq.com) | API Key (Llama 4 Scout fallback) |
 | Telegram BotFather | [t.me/BotFather](https://t.me/BotFather) | Bot token via `/newbot` |
 
-### Step 5: Configure OpenClaw
+### Step 5: Configure OpenClaw (auto-generated)
 
-Create the config file at `~/.openclaw/openclaw.json` (Linux/macOS) or `C:\Users\<YOU>\.openclaw\openclaw.json` (Windows):
+OpenClaw's gateway needs **absolute paths** to the venv Python interpreter and to each MCP `server.py` (it does not yet support a `cwd` field for stdio servers). Rather than hand-editing those paths every time you move to a new machine, copy `.env.example` to `.env`, fill in your secrets, and run the generator:
 
-```json
-{
-  "gateway": { "mode": "local" },
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "google/gemini-2.5-flash",
-        "fallbacks": ["groq/llama-4-scout-17b-16e-instruct"]
-      }
-    }
-  },
-  "models": {
-    "mode": "merge",
-    "providers": {
-      "groq": {
-        "baseUrl": "https://api.groq.com/openai/v1",
-        "apiKey": "${GROQ_API_KEY}",
-        "api": "openai-completions",
-        "models": [{
-          "id": "llama-4-scout-17b-16e-instruct",
-          "name": "Llama 4 Scout (Groq)",
-          "reasoning": false
-        }]
-      }
-    }
-  },
-  "channels": {
-    "telegram": {
-      "botToken": "${TELEGRAM_BOT_TOKEN}",
-      "dmPolicy": "allowlist",
-      "allowFrom": ["YOUR_TELEGRAM_USER_ID"]
-    },
-    "whatsapp": {
-      "dmPolicy": "allowlist",
-      "allowFrom": ["+91XXXXXXXXXX"]
-    }
-  },
-  "mcp": {
-    "servers": {
-      "tracker": {
-        "transport": "stdio",
-        "command": ".venv/bin/python",
-        "args": ["-m", "mcp-servers.tracker.server"],
-        "env": { "GOOGLE_SERVICE_ACCOUNT_FILE": "${GOOGLE_SERVICE_ACCOUNT_FILE}" }
-      },
-      "job_search": {
-        "transport": "stdio",
-        "command": ".venv/bin/python",
-        "args": ["-m", "mcp-servers.job_search.server"]
-      },
-      "resume_tailor": {
-        "transport": "stdio",
-        "command": ".venv/bin/python",
-        "args": ["-m", "mcp-servers.resume_tailor.server"]
-      },
-      "application_filler": {
-        "transport": "stdio",
-        "command": ".venv/bin/python",
-        "args": ["-m", "mcp-servers.application_filler.server"]
-      },
-      "gmail_sync": {
-        "transport": "stdio",
-        "command": ".venv/bin/python",
-        "args": ["-m", "mcp-servers.gmail_sync.server"]
-      },
-      "followup": {
-        "transport": "stdio",
-        "command": ".venv/bin/python",
-        "args": ["-m", "mcp-servers.followup.server"]
-      }
-    }
-  },
-  "env": {
-    "GOOGLE_API_KEY": "<your-google-ai-studio-key>",
-    "GROQ_API_KEY": "<your-groq-key>",
-    "TELEGRAM_BOT_TOKEN": "<your-telegram-bot-token>",
-    "GOOGLE_SERVICE_ACCOUNT_FILE": "data/service-account.json"
-  },
-  "plugins": { "entries": { "google": { "enabled": true } } }
-}
+```bash
+cp .env.example .env       # Linux/macOS
+copy .env.example .env     # Windows PowerShell
 ```
 
-> **Windows**: Change all `.venv/bin/python` to `.venv/Scripts/python` in the MCP server commands.
+Edit `.env` and set at minimum:
+
+- `GOOGLE_API_KEY` (required)
+- `GROQ_API_KEY` (recommended — fallback model)
+- `TELEGRAM_BOT_TOKEN` and `ALLOWED_TELEGRAM_ID` (if using Telegram)
+- `ALLOWED_WHATSAPP_NUMBER` (if using WhatsApp, in E.164 form e.g. `+91XXXXXXXXXX`)
+- `OPENCLAW_GATEWAY_TOKEN` (optional — pin the gateway auth token; otherwise a random one is generated each run)
+
+Then generate the OpenClaw config:
+
+```bash
+python tools/setup_openclaw_config.py            # writes ~/.openclaw/openclaw.json
+python tools/setup_openclaw_config.py --dry-run  # preview without writing
+```
+
+The script:
+1. Reads `config/openclaw.template.json`
+2. Loads values from `.env` (falls back to OS env vars)
+3. Auto-detects the venv Python (`.venv/Scripts/python.exe` on Windows, `.venv/bin/python` elsewhere)
+4. Substitutes absolute paths for this machine
+5. Backs up any existing `openclaw.json` to `openclaw.json.bak`
+6. Writes the result to `~/.openclaw/openclaw.json`
+
+Re-run it any time you move the repo, switch machines, or rotate secrets.
 
 ### Step 6: Google Sheets
 

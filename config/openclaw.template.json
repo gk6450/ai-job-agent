@@ -1,0 +1,97 @@
+{
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "{{GATEWAY_TOKEN}}"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "google/gemini-2.5-flash",
+        "fallbacks": [
+          "groq/llama-3.3-70b-versatile"
+        ]
+      }
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "groq": {
+        "baseUrl": "https://api.groq.com/openai/v1",
+        "apiKey": "${GROQ_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "llama-3.3-70b-versatile",
+            "name": "Llama 3.3 70B (Groq)",
+            "reasoning": false
+          }
+        ]
+      }
+    }
+  },
+  "channels": {
+    "telegram": {
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "dmPolicy": "allowlist",
+      "allowFrom": ["{{ALLOWED_TELEGRAM_ID}}"]
+    },
+    "whatsapp": {
+      "dmPolicy": "allowlist",
+      "allowFrom": ["{{ALLOWED_WHATSAPP_NUMBER}}"]
+    }
+  },
+  "mcp": {
+    "servers": {
+      "tracker": {
+        "transport": "stdio",
+        "command": "{{VENV_PYTHON}}",
+        "args": ["{{REPO_ROOT}}/mcp-servers/tracker/server.py"],
+        "env": {
+          "GOOGLE_SERVICE_ACCOUNT_FILE": "${GOOGLE_SERVICE_ACCOUNT_FILE}"
+        }
+      },
+      "job_search": {
+        "transport": "stdio",
+        "command": "{{VENV_PYTHON}}",
+        "args": ["{{REPO_ROOT}}/mcp-servers/job_search/server.py"]
+      },
+      "resume_tailor": {
+        "transport": "stdio",
+        "command": "{{VENV_PYTHON}}",
+        "args": ["{{REPO_ROOT}}/mcp-servers/resume_tailor/server.py"]
+      },
+      "application_filler": {
+        "transport": "stdio",
+        "command": "{{VENV_PYTHON}}",
+        "args": ["{{REPO_ROOT}}/mcp-servers/application_filler/server.py"]
+      },
+      "gmail_sync": {
+        "transport": "stdio",
+        "command": "{{VENV_PYTHON}}",
+        "args": ["{{REPO_ROOT}}/mcp-servers/gmail_sync/server.py"]
+      },
+      "followup": {
+        "transport": "stdio",
+        "command": "{{VENV_PYTHON}}",
+        "args": ["{{REPO_ROOT}}/mcp-servers/followup/server.py"]
+      }
+    }
+  },
+  "env": {
+    "GOOGLE_API_KEY": "{{GOOGLE_API_KEY}}",
+    "GROQ_API_KEY": "{{GROQ_API_KEY}}",
+    "TELEGRAM_BOT_TOKEN": "{{TELEGRAM_BOT_TOKEN}}",
+    "GOOGLE_SERVICE_ACCOUNT_FILE": "{{GOOGLE_SERVICE_ACCOUNT_FILE}}"
+  },
+  "plugins": {
+    "entries": {
+      "google": {
+        "enabled": true
+      }
+    }
+  }
+}

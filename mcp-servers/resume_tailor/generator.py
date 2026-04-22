@@ -7,9 +7,27 @@ from datetime import datetime
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
 
 logger = logging.getLogger(__name__)
+
+
+def _get_html_renderer():
+    """Lazily import WeasyPrint to avoid import-time GTK errors on Windows.
+
+    WeasyPrint requires system-level GTK libraries (libgobject, libpango, etc.)
+    to be installed and on PATH. Importing it lazily lets the MCP server start
+    even when those libraries are missing; PDF generation will only fail when
+    actually called, with a clear error message.
+    """
+    try:
+        from weasyprint import HTML
+        return HTML
+    except OSError as e:
+        raise RuntimeError(
+            "WeasyPrint cannot load required GTK system libraries. "
+            "On Windows, install GTK3 runtime: https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases "
+            f"Original error: {e}"
+        ) from e
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 GENERATED_DIR = Path(__file__).parent.parent.parent / "generated"
@@ -47,6 +65,7 @@ def generate_resume_pdf(resume_data: dict, application_id: str = "") -> Path:
         filename = f"resume_{timestamp}.pdf"
 
     output_path = output_dir / filename
+    HTML = _get_html_renderer()
     HTML(string=html_content).write_pdf(str(output_path))
     logger.info(f"Resume PDF generated: {output_path}")
 
@@ -106,6 +125,7 @@ def generate_cover_letter_pdf(
         filename = f"cover_letter_{timestamp}.pdf"
 
     output_path = output_dir / filename
+    HTML = _get_html_renderer()
     HTML(string=html_content).write_pdf(str(output_path))
     logger.info(f"Cover letter PDF generated: {output_path}")
 

@@ -1,17 +1,19 @@
 import logging
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+
 from fastmcp import FastMCP
 
-from .auth import get_gmail_service, check_auth_status
-from .reader import fetch_messages, search_by_company, EmailMessage
-from .matcher import classify_email, match_email_to_application, suggest_status_update
+from auth import get_gmail_service, check_auth_status
+from reader import fetch_messages, search_by_company, EmailMessage
+from matcher import classify_email, match_email_to_application, suggest_status_update
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP(
-    "GmailSync",
-    description="Monitor Gmail for job application responses. Classify emails as interview invites, rejections, assessments, or offers. Match responses to tracked applications.",
-)
+mcp = FastMCP("GmailSync")
 
 
 def _get_tracker_module():

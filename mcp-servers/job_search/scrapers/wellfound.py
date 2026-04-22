@@ -6,7 +6,7 @@ import urllib.parse
 import httpx
 from bs4 import BeautifulSoup
 
-from ..models import JobListing
+from models import JobListing
 from .base import BaseScraper
 
 logger = logging.getLogger(__name__)

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from thefuzz import fuzz
 
-from .models import JobListing
+from models import JobListing
 
 logger = logging.getLogger(__name__)
 

@@ -1,21 +1,21 @@
 import json
 import logging
 import os
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
 
 from fastmcp import FastMCP
 
-from .parser import parse_resume, parse_and_save
-from .tailor import tailor_resume, generate_cover_letter
-from .generator import generate_resume_pdf, generate_cover_letter_pdf
+from parser import parse_resume, parse_and_save
+from tailor import tailor_resume, generate_cover_letter
+from generator import generate_resume_pdf, generate_cover_letter_pdf
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP(
-    "ResumeTailor",
-    description="Parse, tailor, and generate PDF resumes and cover letters. Conservative tailoring -- never fabricates information.",
-)
+mcp = FastMCP("ResumeTailor")
 
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
 GENERATED_DIR = Path(__file__).parent.parent.parent / "generated"

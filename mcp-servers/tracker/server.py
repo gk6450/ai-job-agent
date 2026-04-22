@@ -6,10 +6,7 @@ import gspread
 from fastmcp import FastMCP
 from google.oauth2.service_account import Credentials
 
-mcp = FastMCP(
-    "JobTracker",
-    description="Track job applications in Google Sheets. Log applications, update statuses, query stats, and find pending follow-ups.",
-)
+mcp = FastMCP("JobTracker")
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",

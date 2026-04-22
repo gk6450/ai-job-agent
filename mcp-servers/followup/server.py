@@ -1,20 +1,20 @@
 import json
 import logging
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
 
 from fastmcp import FastMCP
 
-from .drafter import draft_followup_email, draft_thank_you_email
-from .sender import send_email
-from .scheduler import get_due_followups
+from drafter import draft_followup_email, draft_thank_you_email
+from sender import send_email
+from scheduler import get_due_followups
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP(
-    "FollowUp",
-    description="Manage follow-up emails for job applications. Draft, review, and send follow-up or thank-you emails based on configurable policies.",
-)
+mcp = FastMCP("FollowUp")
 
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
 PREFS_PATH = DATA_DIR / "preferences.json"

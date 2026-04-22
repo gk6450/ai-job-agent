@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from thefuzz import fuzz
 
-from .models import JobListing
+from models import JobListing
 
 SIMILARITY_THRESHOLD = 85
 

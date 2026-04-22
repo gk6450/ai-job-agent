@@ -1,20 +1,20 @@
 import json
 import logging
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
 
 from fastmcp import FastMCP
 
-from .detector import detect_ats_type
-from .screenshot import capture_page, list_screenshots, screenshot_to_base64
-from .handlers import get_handler
+from detector import detect_ats_type
+from screenshot import capture_page, list_screenshots, screenshot_to_base64
+from handlers import get_handler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP(
-    "ApplicationFiller",
-    description="Fill job application forms on major ATS platforms (Workday, Greenhouse, Lever, LinkedIn, Naukri, Indeed, iCIMS). Screenshots each page for approval before submission.",
-)
+mcp = FastMCP("ApplicationFiller")
 
 # Persistent browser sessions for multi-step flows
 _active_sessions: dict[str, dict] = {}

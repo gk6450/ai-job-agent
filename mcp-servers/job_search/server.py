@@ -2,22 +2,22 @@ import asyncio
 import json
 import logging
 import os
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
 
 from fastmcp import FastMCP
 
-from .models import JobListing, SearchQuery, SearchResult
-from .dedup import deduplicate
-from .scrapers import SCRAPERS
-from .scorer import score_job, score_and_rank, AUTO_APPLY_THRESHOLD
+from models import JobListing, SearchQuery, SearchResult
+from dedup import deduplicate
+from scrapers import SCRAPERS
+from scorer import score_job, score_and_rank, AUTO_APPLY_THRESHOLD
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP(
-    "JobSearch",
-    description="Search for job listings across LinkedIn, Indeed, Naukri, Glassdoor, and Wellfound. Deduplicate and rank results.",
-)
+mcp = FastMCP("JobSearch")
 
 PREFS_PATH = Path(__file__).parent.parent.parent / "data" / "preferences.json"
 
