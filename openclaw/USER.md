@@ -68,7 +68,7 @@
 - **Highest education**: Bachelor's degree
 - **Are you legally authorized to work in India?**: Yes
 - **Do you require visa sponsorship?**: Only for countries outside India
-- **Gender**: (leave blank on forms unless required)
+- **Gender**: Male (leave blank on forms unless required)
 - **Disability status**: No
 - **Veteran status**: No
 

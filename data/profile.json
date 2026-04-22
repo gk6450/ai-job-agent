@@ -20,7 +20,7 @@
   "work_authorization_india": true,
   "requires_visa_sponsorship": "Only for countries outside India",
   "current_salary_lpa": 6.56,
-  "gender": "",
+  "gender": "Male",
   "disability_status": "No",
   "veteran_status": "No"
 }
