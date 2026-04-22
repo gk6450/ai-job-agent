@@ -221,16 +221,37 @@ Also check `data/profile.json` for any remaining `FILL_IN` placeholders.
 cd ai-job-agent
 openclaw gateway start
 openclaw gateway status
+openclaw status
 ```
 
-Expected: `Running` on port `18789` with all 6 MCP servers listed as healthy.
+Expected output:
+
+- `openclaw gateway status` → `Runtime: running` and `Connectivity probe: ok`
+- `openclaw status` → `Telegram: ON · OK`, `Agents: 1`, sessions present
+- `openclaw agents list` → `Identity: JobPilot (IDENTITY.md)` and `Workspace: <repo>/openclaw`
+
+> **Cosmetic warning to ignore:** `openclaw status` may show `Bootstrap file: ABSENT` for the `main` agent. This is OpenClaw's flag for a per-agent provenance file it generates internally — it does **not** mean your AGENTS.md / SOUL.md / USER.md / IDENTITY.md aren't loading. As long as `openclaw agents list` shows `Identity: JobPilot (IDENTITY.md)`, the workspace is wired correctly.
+
+#### Open the OpenClaw Dashboard (web chat + logs + sessions)
+
+```
+http://127.0.0.1:18789/
+```
+
+Bookmark this — it's your primary "control panel" for the agent. From here you can:
+
+- Chat with JobPilot in a browser (no Telegram needed for testing)
+- View live logs and MCP tool-call traces
+- Browse session history and switch sessions
+- See channel status (Telegram / WhatsApp)
 
 If a server is unhealthy, view logs:
+
 ```bash
-openclaw gateway logs --tail 100
+openclaw logs --follow
 ```
 
-Most failures are path mismatches — re-run `python tools/setup_openclaw_config.py`, then `openclaw gateway stop` + `openclaw gateway start`.
+Most failures are path mismatches — re-run `python tools/setup_openclaw_config.py`, then `openclaw gateway restart`.
 
 ### Step 10: Smoke-test all MCP servers
 
@@ -353,22 +374,111 @@ If you get `cannot load library 'libgobject-2.0-0'`, the installer didn't update
 
 > WeasyPrint is imported lazily inside `mcp-servers/resume_tailor/generator.py`, so the MCP server starts fine even without GTK — but PDF generation calls will fail with a clear error until you install it.
 
-### Step 15: Web UI (optional)
+### Step 15: Web UI (JobPilot Mission Control)
 
-**Terminal 1** — Backend:
-```bash
+The OpenClaw dashboard (Step 9) handles chat + logs. The custom Web UI adds the things OpenClaw can't show:
+
+- **Dashboard** — application stats, charts (apply-rate, response-rate over time), recent activity feed
+- **Applications** — pipeline (Pending Review → Applied → Interview → Offer / Rejected) with kanban-style filters, status updates
+- **Job Search** — fire ad-hoc searches with form-based filters (keywords, location, platforms, remote, experience)
+- **Resume Review** — preview tailored resumes / cover letters side-by-side with the original; approve / reject
+- **Chat** — alternative chat surface (proxies to OpenClaw gateway)
+- **Settings** — edit `data/profile.json` and `data/preferences.json`, view connection health (Sheets, Gmail, Telegram)
+
+**Stack:** FastAPI backend + React 19 + Vite + TailwindCSS + Recharts + Lucide icons
+
+#### 15.1 Install Node 22+ if not already
+
+```powershell
+node --version
+```
+
+If missing or < 22, install from [nodejs.org/en/download](https://nodejs.org/en/download) (LTS).
+
+#### 15.2 Install frontend dependencies (one-time)
+
+```powershell
+cd web\frontend
+npm install
+cd ..\..
+```
+
+This pulls React 19, Vite 6, Tailwind 4, axios, recharts, and lucide-react (~150 MB into `web/frontend/node_modules`). Takes 1–2 minutes.
+
+#### 15.3 Run the backend (Terminal 1)
+
+```powershell
 cd ai-job-agent
+.venv\Scripts\activate
 python -m uvicorn web.backend.main:app --reload --port 8000
 ```
 
-**Terminal 2** — Frontend:
-```bash
-cd ai-job-agent/web/frontend
-npm install
+Expected: `Application startup complete.` and `Uvicorn running on http://127.0.0.1:8000`. 
+
+Health check (in a 3rd terminal):
+```powershell
+curl http://127.0.0.1:8000/api/health
+```
+Should return `{"status":"ok","service":"jobpilot-web"}`.
+
+#### 15.4 Run the frontend dev server (Terminal 2)
+
+```powershell
+cd ai-job-agent\web\frontend
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173)
+Expected:
+```
+VITE v6.x ready in 412 ms
+➜  Local:   http://localhost:5173/
+```
+
+Open [http://localhost:5173](http://localhost:5173) → JobPilot Mission Control.
+
+The frontend's `vite.config.ts` proxies `/api/*` to `http://localhost:8000`, so both servers must be running.
+
+#### 15.5 Common Web UI issues
+
+| Symptom | Fix |
+|---|---|
+| `npm install` fails with `EACCES` / permission errors on Windows | Run PowerShell as Administrator once for the install |
+| Backend errors on startup: `ModuleNotFoundError: No module named 'web'` | Run uvicorn from the **repo root**, not from `web/backend` |
+| Frontend loads but every page shows "Network Error" | Backend isn't running on port 8000 — check Terminal 1 |
+| Backend `Forbidden` on every API call | Set `JOBPILOT_WEB_TOKEN=jobpilot-local-dev` in your env (or whatever you set in `web/backend/config.py`) |
+| `getApplications()` returns 500 | Sheets credentials missing — re-check Step 6 (`data/service-account.json` and tracker test) |
+| Tailwind classes not applying | Vite proxy or PostCSS issue — run `npm run dev` once more after a fresh `npm install` |
+
+#### 15.6 Production build (optional)
+
+```powershell
+cd web\frontend
+npm run build
+```
+
+This creates `web/frontend/dist/` — when present, the FastAPI backend (Step 15.3) auto-serves it from `/`, so you only need **one process** in production. Visit [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
+
+---
+
+### Auto-generated files (don't worry about these)
+
+OpenClaw and the test scripts create some files at runtime. Here's what's safe to delete vs. leave alone:
+
+| File | Created by | Safe to delete? |
+|---|---|---|
+| `~\.openclaw\agents\main\agent\HEARTBEAT.md` | OpenClaw runtime (per restart) | No — auto-recreated; deleting won't break anything but it'll come back |
+| `~\.openclaw\agents\main\agent\TOOLS.md` | OpenClaw runtime | No — same as above |
+| `~\.openclaw\agents\main\agent\models.json` | OpenClaw runtime | No |
+| `~\.openclaw\agents\main\sessions\sessions.json` | OpenClaw chat sessions | Deletes your chat history — usually leave |
+| `test.pdf` (repo root) | Step 14 verification command | **Yes** — `del test.pdf` |
+| `data/gmail_token.json` | Step 13.4 OAuth flow | Only delete to re-auth a different Gmail account |
+| `generated/*.pdf`, `generated/*.html` | Resume tailor MCP outputs | **Yes** — these are throwaway artifacts per application |
+
+If you accidentally copied `AGENTS.md` / `SOUL.md` / `USER.md` / `IDENTITY.md` into `~\.openclaw\agents\main\agent\` while debugging, you can safely delete them — OpenClaw reads those from your repo's `openclaw/` workspace, not from the per-agent dir:
+
+```powershell
+Remove-Item ~\.openclaw\agents\main\agent\AGENTS.md, ~\.openclaw\agents\main\agent\SOUL.md, ~\.openclaw\agents\main\agent\USER.md, ~\.openclaw\agents\main\agent\IDENTITY.md -ErrorAction SilentlyContinue
+```
 
 ---
 
@@ -664,6 +774,9 @@ ai-job-agent/
 |-------|-----|
 | `openclaw: command not found` | `npm i -g openclaw@beta` |
 | Gateway port 18789 in use | `openclaw gateway stop` or kill node processes |
+| `Bootstrap file: ABSENT` for `main` agent | Cosmetic — verify with `openclaw agents list`, should show `Identity: JobPilot (IDENTITY.md)`. Workspace is loaded; this label is for an internal OpenClaw provenance file. |
+| `gateway connect failed: scope upgrade pending approval` | Cosmetic — gateway still works. It's the Telegram native-approvals handler asking for permissions. Ignore unless you want phone-button approvals. |
+| `openclaw devices approve <id>` says `unknown requestId` | Each restart issues a new requestId; the old one is stale. Either re-read logs for the latest, or ignore (gateway runs fine without it). |
 | Spreadsheet not found | Sheet name must be exactly "Job Application Tracker", shared with service account email |
 | `service-account.json` not found | Place at `data/service-account.json` and set path in `openclaw.json` |
 | Telegram not connecting | Corporate networks often block Telegram — try personal network |
@@ -672,6 +785,9 @@ ai-job-agent/
 | Playwright errors | Run `playwright install chromium` (needs venv activated) |
 | Gmail auth fails | Delete `data/gmail_token.json` and re-authenticate |
 | Web UI can't connect | Ensure backend is running on port 8000, check CORS_ORIGINS |
+| Web UI: `ModuleNotFoundError: No module named 'web'` | Run `uvicorn` from repo root, not from `web/backend/` |
+| Web UI: `npm install` fails on Windows | Run PowerShell as Administrator once |
+| Web UI: 403 Forbidden on every API call | Set `JOBPILOT_WEB_TOKEN=jobpilot-local-dev` in env, or check `web/backend/auth.py` |
 | Docker build fails | Add swap: `sudo fallocate -l 4G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile` |
 
 ---
